@@ -21,6 +21,7 @@ data/embeddings.npy
 data/faiss_index.bin
 data/embeddings_checkpoint.npy
 data/embeddings_checkpoint_idx.txt
+changes.md
 
 # ── Model weights (large binary files) ────────────────────────────────────────
 models/
@@ -40,3 +41,4 @@ models/
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+
