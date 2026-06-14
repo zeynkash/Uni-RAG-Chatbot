@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Istanbul Universities AI Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --sidebar-bg: #0f0f1a;
+      --border: #1e1e35;
+      --accent: #00d4ff;
+      --accent-glow: rgba(0, 212, 255, 0.2);
+      --text: #e2e8f0;
+      --text-muted: #6b7280;
+      --hover-bg: rgba(255, 255, 255, 0.04);
+      --radius: 12px;
+      --bot-bubble: rgba(255, 255, 255, 0.03);
+    }
+
+    body.light-mode {
+      --bg: #ffffff;
+      --sidebar-bg: #f5f6f8;
+      --border: #d0d8e0;
+      --accent: #0066cc;
+      --accent-glow: rgba(0, 102, 204, 0.2);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --hover-bg: rgba(0, 102, 204, 0.08);
+      --bot-bubble: rgba(0, 102, 204, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Icons */
+    svg { fill: currentColor; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .brand-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .global-search {
+      display: none;
+    }
+    .global-search svg { width: 14px; height: 14px; margin-right: 8px; }
+    .shortcut { margin-left: auto; background: var(--border); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px 16px;
+    }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .nav-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 24px; margin-top: 10px;}
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-item:hover { background: var(--hover-bg); }
+    .nav-item.active { background: rgba(0, 212, 255, 0.08); color: var(--accent); }
+    .nav-item svg { width: 16px; height: 16px; opacity: 0.8; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin: 16px 0 8px 12px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item:hover { background: var(--hover-bg); color: var(--text); }
+    .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* University Section */
+    .uni-search-wrap {
+      margin: 0 12px 10px;
+      position: relative;
+    }
+    .uni-search {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px 6px 28px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+    }
+    .uni-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+    .uni-search-wrap svg {
+      position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+      width: 12px; height: 12px; color: var(--text-muted);
+    }
+    .uni-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    .uni-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .uni-item:hover { background: var(--hover-bg); color: var(--text); }
+    .uni-item.active { background: var(--hover-bg); color: var(--accent); border-left: 2px solid var(--accent); }
+    .uni-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); margin-right: 10px; flex-shrink: 0;}
+    .uni-item.active .uni-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .uni-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .uni-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); }
+
+    /* MAIN AREA */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .topbar {
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(12px);
+      z-index: 5;
+    }
+
+    body.light-mode .topbar {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover-bg);
+      border-color: var(--accent);
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Language Toggle */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+    }
+
+    .lang-btn {
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .lang-btn:hover {
+      color: var(--text);
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    body.light-mode .lang-btn.active {
+      color: #fff;
+    }
+    
+    .active-uni-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .active-uni-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+    .topbar-actions { display: flex; gap: 12px; }
+    .btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: var(--hover-bg); }
+    .btn-primary { background: var(--text); border: none; color: var(--bg); }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* Welcome / Chat Area */
+    .chat-view {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px 0 140px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chat-view::-webkit-scrollbar { width: 6px; }
+    .chat-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+
+    .welcome-screen {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 0 24px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .welcome-title { font-size: 36px; font-weight: 700; margin-bottom: 12px; background: linear-gradient(to right, #fff, var(--text-muted)); -webkit-background-clip: text; color: transparent;}
+    .welcome-sub { color: var(--text-muted); font-size: 15px; margin-bottom: 40px; text-align: center;}
+
+    body.light-mode .welcome-title {
+      background: linear-gradient(to right, #0066cc, #0f172a);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin-bottom: 60px;
+    }
+    .feature-card {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(0, 212, 255, 0.4); background: rgba(0, 212, 255, 0.02); }
+    
+    body.light-mode .feature-card:hover {
+      border-color: rgba(0, 102, 204, 0.4);
+      background: rgba(0, 102, 204, 0.05);
+    }
+    .feature-icon {
+      width: 32px; height: 32px; border-radius: 8px; background: var(--hover-bg);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent);
+    }
+    .feature-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .feature-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* Messages */
+    .message-container { width: 100%; max-width: 800px; display: none; flex-direction: column; gap: 24px; padding: 0 24px; margin-bottom: auto;}
+    .msg-row { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
+    .msg-row.user { justify-content: flex-end; }
+    
+    .bubble { max-width: 80%; padding: 14px 18px; border-radius: 18px; font-size: 14.5px; line-height: 1.6; }
+    .msg-row.user .bubble {
+      background: linear-gradient(135deg, #1e1e35 0%, var(--border) 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom-right-radius: 4px;
+    }
+    .msg-row.bot { gap: 16px; }
+    .bot-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; margin-top: 4px;}
+    .msg-row.bot .bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+      color: var(--text);
+    }
+
+    /* Input Area */
+    .input-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      padding: 0 24px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .suggestions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      max-width: 800px;
+      width: 100%;
+      padding-bottom: 4px;
+    }
+    .suggestions::-webkit-scrollbar { display: none; }
+    .chip {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(10, 10, 15, 0.6);
+      backdrop-filter: blur(8px);
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .chip:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    body.light-mode .chip {
+      background: #e8eef5;
+      border-color: #b8c5d4;
+      color: #1f2937;
+    }
+    body.light-mode .chip:hover {
+      background: #d4dfe8;
+      color: #0f172a;
+      border-color: #0066cc;
+    }
+
+    .input-box {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(15, 15, 26, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-box:focus-within {
+      border-color: rgba(0, 212, 255, 0.4);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(0, 212, 255, 0.2);
+    }
+
+    body.light-mode .input-box {
+      background: #f5f7fb;
+      box-shadow: 0 10px 30px rgba(0, 102, 204, 0.1);
+    }
+    body.light-mode .input-box:focus-within {
+      border-color: rgba(0, 102, 204, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 102, 204, 0.1), 0 0 0 1px rgba(0, 102, 204, 0.2);
+    }
+
+    .tool-btn {
+      width: 36px; height: 36px; border-radius: 10px; background: transparent; border: none;
+      display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+      cursor: pointer; transition: 0.2s;
+    }
+    .tool-btn:hover { background: var(--hover-bg); color: var(--text); }
+    
+    #promptInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+    #promptInput::placeholder { color: var(--text-muted); }
+
+    .send-btn {
+      width: 36px; height: 36px; border-radius: 10px; border: none;
+      background: var(--accent); color: #000;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.2s;
+    }
+    .send-btn:hover { opacity: 0.9; transform: scale(1.05); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    body.light-mode .send-btn {
+      color: #ffffff;
+    }
+
+    /* Typing Pulse */
+    .typing { display: flex; gap: 4px; align-items: center; height: 24px;}
+    .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: pulse 1.5s infinite ease-in-out; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+
+    /* Saved Prompts Modal */
+    .prompts-modal {
+      display: none;
+      position: absolute;
+      bottom: 120px;
+      left: 12px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 220px;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 20;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .prompts-modal.active { display: flex; flex-direction: column; }
+
+    .prompt-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .prompt-item:last-child { border-bottom: none; }
+
+    .prompt-item:hover {
+      background: var(--hover-bg);
+      color: var(--text);
+      padding-left: 16px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <span data-i18n="brandTitle">Istanbul Universities AI Chatbot</span>
+      </div>
+      <div class="global-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <span data-i18n="searchBox">Search</span>
+        <span class="shortcut">/</span>
+      </div>
+    </div>
+
+    <div class="sidebar-scroll">
+      <div class="nav-list">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="home">Home</span>
+        </div>
+      </div>
+
+      <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; padding-right: 12px;">
+        <span data-i18n="universities">Universities</span> <span style="background: var(--border); padding: 2px 6px; border-radius: 10px; font-size: 9px;" id="uniCount">50</span>
+      </div>
+      
+      <div class="uni-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" class="uni-search" id="uniSearch" placeholder="Filter universities..." data-i18n-placeholder="filterPlaceholder" oninput="filterUnis()">
+      </div>
+
+      <div class="uni-list" id="uniList">
+        <div class="uni-item active" onclick="selectUni('all', 'All Universities')">
+          <div class="uni-dot"></div>
+          <div class="uni-name" data-i18n="allUniversities">All Universities</div>
+          <div class="uni-tag" data-i18n="globalTag">GLOBAL</div>
+        </div>
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main">
+    <div class="topbar">
+      <div class="active-uni-badge" id="topBadge">
+        <div class="dot"></div>
+        <span id="topBadgeText" data-i18n="allUniversities">All Universities</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <!-- Language Toggle -->
+        <div class="lang-toggle" id="langToggle" title="Select response language">
+          <button class="lang-btn active" id="langBtnAuto" onclick="setLanguage('auto')">AUTO</button>
+          <button class="lang-btn" id="langBtnEn" onclick="setLanguage('en')">EN</button>
+          <button class="lang-btn" id="langBtnTr" onclick="setLanguage('tr')">TR</button>
+        </div>
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-view" id="chatView">
+      
+      <!-- Welcome Screen -->
+      <div class="welcome-screen" id="welcomeScreen">
+        <h1 class="welcome-title" data-i18n="welcomeTitle">Istanbul Universities AI Chatbot</h1>
+        <p class="welcome-sub" data-i18n="welcomeSub">Ask anything about 50 Istanbul universities. Get instant, accurate answers powered by RAG.</p>
+        
+        <div class="feature-grid">
+          <div class="feature-card" onclick="setInput('What are the top engineering faculties?')">
+            <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div class="feature-title" data-i18n="f1Title">Compare Faculties</div>
+            <div class="feature-desc" data-i18n="f1Desc">Compare departments, quotas, and scores across multiple universities instantly.</div>
+          </div>
+          <div class="feature-card" onclick="setInput('List all private universities in European side')">
+            <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+            <div class="feature-title" data-i18n="f2Title">Location & Type</div>
+            <div class="feature-desc" data-i18n="f2Desc">Filter by location, foundation vs state, and campus facilities.</div>
+          </div>
+          <div class="feature-card" onclick="setInput('How to apply for international students?')">
+            <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="feature-title" data-i18n="f3Title">Admissions Info</div>
+            <div class="feature-desc" data-i18n="f3Desc">Get detailed information about application dates, requirements and fees.</div>
+          </div>
+          <div class="feature-card" onclick="setInput('Bana yurt olanaklarından bahset')">
+            <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
+            <div class="feature-title" data-i18n="f4Title">Multi-language</div>
+            <div class="feature-desc" data-i18n="f4Desc">Ask questions in Turkish or English. The system seamlessly handles both.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="message-container" id="msgContainer"></div>
+
+    </div>
+
+    <!-- Input Box -->
+    <div class="input-wrapper">
+      <div class="suggestions" id="suggestions">
+        <div class="chip" onclick="setInput('What are the tuition fees?')" data-i18n="chip1">Tuition fees</div>
+        <div class="chip" onclick="setInput('List engineering departments')" data-i18n="chip2">Engineering depts</div>
+        <div class="chip" onclick="setInput('Hangi üniversitelerde tıp var?')" data-i18n="chip3">Tıp fakülteleri</div>
+        <div class="chip" onclick="setInput('Compare campus sizes')" data-i18n="chip4">Campus sizes</div>
+      </div>
+      <div class="prompts-modal" id="promptsModal">
+        <div class="prompt-item" onclick="setInput('What are the tuition fees for international students?')" data-i18n="prompt1">Tuition fees (International)</div>
+        <div class="prompt-item" onclick="setInput('List engineering departments and admission scores')" data-i18n="prompt2">Engineering programs</div>
+        <div class="prompt-item" onclick="setInput('Which universities offer dormitory facilities?')" data-i18n="prompt3">Dormitory options</div>
+        <div class="prompt-item" onclick="setInput('Scholarship opportunities for international students')" data-i18n="prompt4">Scholarships</div>
+        <div class="prompt-item" onclick="setInput('Compare business schools in Istanbul')" data-i18n="prompt5">Business schools</div>
+        <div class="prompt-item" onclick="setInput('Tell me about medical faculties')" data-i18n="prompt6">Medical programs</div>
+      </div>
+      <div class="input-box">
+        <button class="tool-btn" title="Saved Prompts" onclick="togglePrompts()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </button>
+        <input type="text" id="promptInput" placeholder="Ask me anything..." onkeypress="handleEnter(event)">
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const translations = {
+    en: {
+      brandTitle: "Istanbul Universities AI Chatbot",
+      searchBox: "Search",
+      home: "Home",
+      universities: "Universities",
+      allUniversities: "All Universities",
+      filterPlaceholder: "Filter universities...",
+      welcomeTitle: "Istanbul Universities AI Chatbot",
+      welcomeSub: "Ask anything about 50 Istanbul universities. Get instant, accurate answers powered by RAG.",
+      f1Title: "Compare Faculties",
+      f1Desc: "Compare departments, quotas, and scores across multiple universities instantly.",
+      f2Title: "Location & Type",
+      f2Desc: "Filter by location, foundation vs state, and campus facilities.",
+      f3Title: "Admissions Info",
+      f3Desc: "Get detailed information about application dates, requirements and fees.",
+      f4Title: "Multi-language",
+      f4Desc: "Ask questions in Turkish or English. The system seamlessly handles both.",
+      sources: "Sources",
+      errorMsg: "Sorry, there was an error connecting to the server. Make sure it is running on port 8002.",
+      chip1: "Tuition fees",
+      chip2: "Engineering depts",
+      chip3: "Tıp fakülteleri",
+      chip4: "Campus sizes",
+      prompt1: "Tuition fees (International)",
+      prompt2: "Engineering programs",
+      prompt3: "Dormitory options",
+      prompt4: "Scholarships",
+      prompt5: "Business schools",
+      prompt6: "Medical programs",
+      globalTag: "GLOBAL",
+      stateTag: "STATE",
+      privateTag: "PRIVATE"
+    },
+    tr: {
+      brandTitle: "İstanbul Üniversiteleri AI Chatbot",
+      searchBox: "Ara",
+      home: "Ana Sayfa",
+      universities: "Üniversiteler",
+      allUniversities: "Tüm Üniversiteler",
+      filterPlaceholder: "Üniversiteleri filtrele...",
+      welcomeTitle: "İstanbul Üniversiteleri AI Chatbot",
+      welcomeSub: "50 İstanbul üniversitesi hakkında her şeyi sorun. RAG destekli anında, doğru cevaplar.",
+      f1Title: "Fakülteleri Karşılaştır",
+      f1Desc: "Bölümleri, kontenjanları ve puanları birden fazla üniversite için anında karşılaştırın.",
+      f2Title: "Konum ve Tür",
+      f2Desc: "Konuma, vakıf/devlet statüsüne ve kampüs olanaklarına göre filtreleyin.",
+      f3Title: "Kabul Bilgileri",
+      f3Desc: "Başvuru tarihleri, şartları ve ücretleri hakkında detaylı bilgi alın.",
+      f4Title: "Çoklu Dil",
+      f4Desc: "Sorularınızı Türkçe veya İngilizce sorun. Sistem her ikisini de destekler.",
+      sources: "Kaynaklar",
+      errorMsg: "Üzgünüz, sunucuya bağlanırken bir hata oluştu. 8002 portunda çalıştığından emin olun.",
+      chip1: "Öğrenim ücretleri",
+      chip2: "Mühendislik bölümleri",
+      chip3: "Tıp fakülteleri",
+      chip4: "Kampüs büyüklükleri",
+      prompt1: "Öğrenim ücretleri (Uluslararası)",
+      prompt2: "Mühendislik programları",
+      prompt3: "Yurt seçenekleri",
+      prompt4: "Burs olanakları",
+      prompt5: "İşletme okulları",
+      prompt6: "Tıp programları",
+      globalTag: "KÜRESEL",
+      stateTag: "DEVLET",
+      privateTag: "VAKIF"
+    }
+  };
+
+  const API_URL = 'http://localhost:8002';
+  let universities = {};
+  let currentUni = 'all';
+  let currentLang = localStorage.getItem('lang') || 'auto';
+
+  function getTranslation(key) {
+    const lang = currentLang === 'auto' ? 'en' : currentLang;
+    return translations[lang][key] || translations['en'][key];
+  }
+
+  function updateInterfaceLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations['en'][key]) {
+        el.textContent = getTranslation(key);
+      }
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (translations['en'][key]) {
+        el.placeholder = getTranslation(key);
+      }
+    });
+    
+    if (currentUni === 'all') {
+      const topBadgeText = document.getElementById('topBadgeText');
+      if(topBadgeText) topBadgeText.textContent = getTranslation('allUniversities');
+    }
+  }
+
+  const uniListDiv = document.getElementById('uniList');
+  const uniSearch = document.getElementById('uniSearch');
+  const uniCountBadge = document.getElementById('uniCount');
+  const topBadgeText = document.getElementById('topBadgeText');
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  const msgContainer = document.getElementById('msgContainer');
+  const chatView = document.getElementById('chatView');
+  const promptInput = document.getElementById('promptInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const suggestions = document.getElementById('suggestions');
+  const promptsModal = document.getElementById('promptsModal');
+  let isDarkMode = true;
+
+  async function loadUnis() {
+    try {
+      const res = await fetch(`${API_URL}/universities`);
+      if(!res.ok) return;
+      const data = await res.json();
+      universities = data.universities;
+      renderUnis();
+      uniCountBadge.textContent = Object.keys(universities).length - 1; // subtract 'all'
+    } catch(e) {
+      console.warn("Could not load universities", e);
+    }
+  }
+
+  function renderUnis(filterText = '') {
+    const list = Object.entries(universities).filter(([slug]) => slug !== 'all');
+    list.sort((a,b) => a[1].localeCompare(b[1]));
+
+    const filtered = list.filter(([slug, name]) => name.toLowerCase().includes(filterText.toLowerCase()));
+    
+    // Keep 'All' on top
+    let html = `
+      <div class="uni-item ${currentUni === 'all' ? 'active' : ''}" onclick="selectUni('all', null)">
+        <div class="uni-dot"></div>
+        <div class="uni-name" data-i18n="allUniversities">${getTranslation('allUniversities')}</div>
+        <div class="uni-tag" data-i18n="globalTag">${getTranslation('globalTag')}</div>
+      </div>
+    `;
+
+    filtered.forEach(([slug, name]) => {
+      // Fake state/private tag based on name hash for demo purposes if real metadata isn't available
+      const typeKey = name.length % 2 === 0 ? 'stateTag' : 'privateTag'; 
+      const isActive = currentUni === slug ? 'active' : '';
+      const safeName = name.replace(/'/g, "\\'");
+      html += `
+        <div class="uni-item ${isActive}" onclick="selectUni('${slug}', '${safeName}')">
+          <div class="uni-dot"></div>
+          <div class="uni-name" title="${name}">${name}</div>
+          <div class="uni-tag" data-i18n="${typeKey}">${getTranslation(typeKey)}</div>
+        </div>
+      `;
+    });
+    uniListDiv.innerHTML = html;
+  }
+
+  function filterUnis() {
+    renderUnis(uniSearch.value);
+  }
+
+  function selectUni(slug, name) {
+    currentUni = slug;
+    if (slug === 'all') {
+      topBadgeText.textContent = getTranslation('allUniversities');
+    } else {
+      topBadgeText.textContent = name;
+    }
+    renderUnis(uniSearch.value); // refresh active state
+  }
+
+  function setInput(text) {
+    promptInput.value = text;
+    promptInput.focus();
+  }
+
+  function switchToChat() {
+    if(welcomeScreen.style.display !== 'none') {
+      welcomeScreen.style.display = 'none';
+      msgContainer.style.display = 'flex';
+      suggestions.style.display = 'none';
+    }
+  }
+
+  function handleEnter(e) {
+    if(e.key === 'Enter') sendMsg();
+  }
+
+  async function sendMsg() {
+    const text = promptInput.value.trim();
+    if(!text) return;
+
+    switchToChat();
+
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg-row user';
+    userMsg.innerHTML = `<div class="bubble">${text}</div>`;
+    msgContainer.appendChild(userMsg);
+
+    promptInput.value = '';
+    sendBtn.disabled = true;
+
+    // Add typing indicator
+    const typingId = 'typing_' + Date.now();
+    const typingMsg = document.createElement('div');
+    typingMsg.className = 'msg-row bot';
+    typingMsg.id = typingId;
+    typingMsg.innerHTML = `
+      <div class="bot-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.5 7.5"/></svg></div>
+      <div class="bubble"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    `;
+    msgContainer.appendChild(typingMsg);
+    chatView.scrollTo({ top: chatView.scrollHeight, behavior: 'smooth' });
+
+    try {
+      const payload = {
+        message: text,
+        language: currentLang,
+        university_filter: currentUni === 'all' ? null : currentUni
+      };
+      
+      const res = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if(!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      document.getElementById(typingId).remove();
+      
+      // format response
+      let content = data.answer.replace(/\n/g, '<br>');
+      
+      let sourcesHtml = '';
+      if (data.sources && data.sources.length > 0) {
+        sourcesHtml = '<div class="sources-section" style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border); font-size:12px;">';
+        sourcesHtml += `<div style="color:var(--text-muted); margin-bottom:8px; font-weight:600; text-transform:uppercase; font-size:10px; letter-spacing:0.5px;">${getTranslation('sources')}</div>`;
+        data.sources.slice(0, 4).forEach(s => {
+          const uniBadge = s.university_name ? `<span style="background:rgba(0, 212, 255, 0.1); color:var(--accent); padding:2px 6px; border-radius:4px; font-size:9px; flex-shrink:0;">${s.university_name}</span>` : '';
+          sourcesHtml += `<div style="margin-bottom:6px; display:flex; align-items:center; gap:6px; overflow:hidden;">
+            ${uniBadge}
+            <a href="${s.url}" target="_blank" style="color:var(--text); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">↗ ${s.title || s.url}</a>
+          </div>`;
+        });
+        sourcesHtml += '</div>';
+      }
+      
+      const botMsg = document.createElement('div');
+      botMsg.className = 'msg-row bot';
+      botMsg.innerHTML = `
+        <div class="bot-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.5 7.5"/></svg></div>
+        <div class="bubble">${content}${sourcesHtml}</div>
+      `;
+      msgContainer.appendChild(botMsg);
+      chatView.scrollTo({ top: chatView.scrollHeight, behavior: 'smooth' });
+
+    } catch(e) {
+      document.getElementById(typingId).remove();
+      const botMsg = document.createElement('div');
+      botMsg.className = 'msg-row bot';
+      botMsg.innerHTML = `
+        <div class="bot-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.5 7.5"/></svg></div>
+        <div class="bubble" style="color:#ef4444">${getTranslation('errorMsg')}</div>
+      `;
+      msgContainer.appendChild(botMsg);
+    } finally {
+      sendBtn.disabled = false;
+      promptInput.focus();
+    }
+  }
+
+  function toggleTheme() {
+    isDarkMode = !isDarkMode;
+    if (isDarkMode) {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
+  function togglePrompts() {
+    promptsModal.classList.toggle('active');
+  }
+
+  // Close prompts modal when clicking elsewhere
+  document.addEventListener('click', function(event) {
+    const toolBtn = document.querySelector('[title="Saved Prompts"]');
+    if (!promptsModal.contains(event.target) && !toolBtn.contains(event.target)) {
+      promptsModal.classList.remove('active');
+    }
+  });
+
+  // Language selector
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    document.getElementById('langBtnAuto').classList.toggle('active', lang === 'auto');
+    document.getElementById('langBtnEn').classList.toggle('active', lang === 'en');
+    document.getElementById('langBtnTr').classList.toggle('active', lang === 'tr');
+    // Update input placeholder to reflect selected language
+    const placeholders = { auto: 'Ask me anything...', en: 'Ask me anything... (replies in English)', tr: 'Bir şey sorun... (Türkçe yanıt verilir)' };
+    document.getElementById('promptInput').placeholder = placeholders[lang];
+    
+    updateInterfaceLanguage();
+    
+    // Re-render universities list to update tags
+    if (Object.keys(universities).length > 0) {
+      filterUnis();
+    }
+  }
+
+  // Apply saved language on load
+  setLanguage(currentLang);
+
+  // Load theme from localStorage
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    isDarkMode = false;
+    document.body.classList.add('light-mode');
+  }
+
+  // Load Unis on start
+  loadUnis();
+</script>
+</body>
+</html>

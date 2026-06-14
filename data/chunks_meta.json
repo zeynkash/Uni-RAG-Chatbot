@@ -1,0 +1,86 @@
+{
+  "total_documents": 36467,
+  "documents_skipped": 646,
+  "total_chunks": 197140,
+  "chunk_config": {
+    "high": {
+      "size": 400,
+      "overlap": 80
+    },
+    "medium": {
+      "size": 600,
+      "overlap": 100
+    },
+    "low": {
+      "size": 800,
+      "overlap": 150
+    },
+    "unknown": {
+      "size": 600,
+      "overlap": 100
+    }
+  },
+  "min_content_chars": 80,
+  "avg_tokens_per_chunk": 331.7,
+  "total_tokens": 65394081,
+  "embedding_cost_estimate": 1.308,
+  "languages": {
+    "tr": 179384,
+    "en": 17756
+  },
+  "priorities": {
+    "high": 192151,
+    "critical": 123,
+    "medium": 4107,
+    "low": 759
+  },
+  "universities": {
+    "acibadem": 4238,
+    "altinbas": 2444,
+    "arel": 209,
+    "atlas": 8227,
+    "bau": 4191,
+    "beykent": 1120,
+    "beykoz": 3377,
+    "bezmialem": 6114,
+    "bilgi": 3393,
+    "biruni": 1165,
+    "dogus": 2309,
+    "esenyurt": 1655,
+    "fbu": 1680,
+    "fsm": 2241,
+    "galata": 796,
+    "gedik": 659,
+    "gelisim": 1029,
+    "halic": 8735,
+    "ihu": 4542,
+    "iku": 7519,
+    "isikun": 4417,
+    "istinye": 7140,
+    "istun": 337,
+    "itu": 831,
+    "izu": 5497,
+    "kent": 5457,
+    "khas": 4422,
+    "maltepe": 3592,
+    "marmara": 5328,
+    "mayis29": 48297,
+    "medeniyet": 869,
+    "medipol": 264,
+    "mef": 1154,
+    "msgsu": 1514,
+    "nisantasi": 5,
+    "okan": 235,
+    "ozyegin": 19,
+    "pirireis": 617,
+    "sabanci": 17422,
+    "tau": 721,
+    "ticaret": 2878,
+    "tju": 79,
+    "topkapi": 5111,
+    "uskudar": 5202,
+    "yeditepe": 5171,
+    "yeniyuzyil": 1592,
+    "yildiz": 3326
+  }
+}

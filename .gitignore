@@ -1,0 +1,42 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+.env
+
+# ── Data files (large, generated — re-run scripts to recreate) ────────────────
+data/chunks.json
+data/combined_raw.json
+data/embeddings.npy
+data/faiss_index.bin
+data/embeddings_checkpoint.npy
+data/embeddings_checkpoint_idx.txt
+
+# ── Model weights (large binary files) ────────────────────────────────────────
+models/
+
+# ── Backup / temp files ────────────────────────────────────────────────────────
+*.bak
+*.bak2
+*.tmp
+*.swp
+*~
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

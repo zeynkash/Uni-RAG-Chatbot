@@ -1,0 +1,8 @@
+{
+  "model": "text-embedding-3-small",
+  "dimension": 1536,
+  "total_embeddings": 150385,
+  "total_chunks": 197140,
+  "errors_skipped": 0,
+  "chunks_file": "/home/zeynkash/projects/izu_scraper/50_uni_rag/scripts/../data/chunks_50unis.json"
+}
